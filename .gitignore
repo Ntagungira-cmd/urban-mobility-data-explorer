@@ -1,3 +1,5 @@
 .idea
 __pycache__
 /data_processing/data_processing.log
+/data_processing/train.csv
+/data_processing/excluded_records.json
