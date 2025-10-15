@@ -2,8 +2,9 @@ import logging
 import math
 from datetime import datetime
 from typing import Dict, Any
-from spatial_index import SpatialGridIndex
-from quick_select import QuickSelect
+from data_processing.taxi_trip_db import TaxiTripDatabase
+from data_processing.spatial_index import SpatialGridIndex
+from data_processing.quick_select import QuickSelect
 import pandas as pd
 import json
 
@@ -19,9 +20,6 @@ logger = logging.getLogger(__name__)
 
 
 class NYCTaxiDataProcessor:
-    """Main data processing pipeline for NYC Taxi Trip data"""
-
-    # NYC geographical boundaries (approximate)
     NYC_BOUNDS = {
         'lat_min': 40.493325,
         'lat_max': 40.916046,
@@ -41,7 +39,6 @@ class NYCTaxiDataProcessor:
         }
 
     def load_data(self, filepath: str) -> pd.DataFrame:
-        """Load raw CSV data"""
         logger.info(f"Loading data from {filepath}")
         try:
             self.raw_data = pd.read_csv(filepath)
@@ -68,16 +65,11 @@ class NYCTaxiDataProcessor:
         self.processing_stats['excluded_records'] += 1
 
     def _validate_coordinates(self, lat: float, lon: float) -> bool:
-        """Validate if coordinates are within NYC boundaries"""
         return (self.NYC_BOUNDS['lat_min'] <= lat <= self.NYC_BOUNDS['lat_max'] and
                 self.NYC_BOUNDS['lon_min'] <= lon <= self.NYC_BOUNDS['lon_max'])
 
     @staticmethod
     def _haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-        """
-        Calculate great-circle distance between two points using Haversine formula.
-        Returns distance in kilometers.
-        """
         R = 6371  # Earth's radius in kilometers
 
         lat1_rad = math.radians(lat1)
@@ -206,14 +198,7 @@ class NYCTaxiDataProcessor:
         return self.clean_data
 
     def derived_features(self) -> pd.DataFrame:
-        """
-        Create derived features from cleaned data.
-        Three required derived features:
-        1. trip_speed_kmh - Average speed during trip
-        2. trip_distance_km - Haversine distance between pickup and dropoff
-        3. hour_of_day - Hour when trip started (for temporal analysis)
-        """
-        logger.info("Engineering derived features...")
+        logger.info("derived features...")
 
         if self.clean_data is None:
             raise ValueError("No cleaned data. Call clean_data() first.")
@@ -283,7 +268,7 @@ class NYCTaxiDataProcessor:
         return self.clean_data
 
     def get_data_summary(self) -> Dict[str, Any]:
-        """Generate comprehensive data summary"""
+
         if self.clean_data is None:
             return {}
 
@@ -325,3 +310,36 @@ class NYCTaxiDataProcessor:
                 'summary': self.processing_stats,
                 'records': self.excluded_records
             }, f, indent=2)
+
+    def process(self, db: TaxiTripDatabase = None, filepath: str = 'train.csv'):
+        print("=" * 80)
+        print("NYC TAXI TRIP DATA PROCESSING PIPELINE")
+        print("=" * 80)
+
+        print("\n[1/5] Loading raw data...")
+        try:
+            self.load_data(filepath)
+        except FileNotFoundError:
+            print(f"ERROR: {filepath} not found. Please place the dataset in the same directory.")
+            print("Download from: NYC Taxi Trip Dataset")
+            return
+
+        print("\n[2/5] Cleaning data...")
+        self.clean_dataset()
+
+        print("\n[3/5] Derived features...")
+        self.derived_features()
+
+        print("\n[4/5] Saving excluded records log...")
+        self.save_excluded_records()
+
+        print("\n[5/5] Inserting data into database...")
+        db.create_schema(db.schema_file)
+        db.insert_data(self.clean_data, self)
+
+        print("\n" + "=" * 80)
+        print("PROCESSING COMPLETE!")
+        print("=" * 80)
+        print(f"✓ Cleaned data: {len(self.clean_data)} records")
+        print(f"✓ Excluded records log: excluded_records.json")
+        print(f"✓ Processing log: data_processing.log")
