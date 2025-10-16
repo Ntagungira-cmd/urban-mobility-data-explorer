@@ -19,7 +19,9 @@ A Flask-based REST API for querying and analyzing NYC taxi trip data.
 
 ```bash
 python3 -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate 
+ or on windows
+venv\Scripts\activate
 ```
 
 ### 2. Install Dependencies
