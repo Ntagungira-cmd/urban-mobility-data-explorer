@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}NYC Taxi Analytics | Data Policy{% endblock %}
+
+{% block main %}
+<section class="page-header policy">
+    <a href="{{ url_for('dashboard') }}" class="btn-link">&larr; Back</a>
+    <h2>Data Policy &amp; Privacy</h2>
+    <p class="muted">We are committed to responsible data practices for educational and research purposes.</p>
+</section>
+
+<section class="card policy-content">
+    <h3>Overview</h3>
+    <p>This NYC Taxi Trip Analytics platform is designed for discovery, classroom demonstrations, and research projects. We process publicly available taxi records and enrich them with derived analytics while protecting individual privacy.</p>
+
+    <h3>Data Collection</h3>
+    <ul>
+        <li><strong>Public Dataset:</strong> Trip records sourced from open NYC Taxi datasets.</li>
+        <li><strong>Account Information:</strong> Name and email for authentication when required.</li>
+        <li><strong>Usage Data:</strong> Aggregated analytics on filters used and pages viewed.</li>
+    </ul>
+
+    <h3>How We Use Your Data</h3>
+    <ul>
+        <li>Provide secure access to dashboards and visualisations.</li>
+        <li>Improve the learning experience and prioritise new features.</li>
+        <li>Generate aggregated findings for coursework and research.</li>
+        <li>Share important platform updates with participants.</li>
+    </ul>
+
+    <h3>Data Protection</h3>
+    <ul>
+        <li>Encrypted connections (HTTPS/SSL) for all requests.</li>
+        <li>Secure credential storage using salted hashing algorithms.</li>
+        <li>Regular dependency updates and security reviews.</li>
+        <li>Restricted access to operational staff only.</li>
+    </ul>
+
+    <h3>Your Rights</h3>
+    <ul>
+        <li>Request access to personal data stored in the system.</li>
+        <li>Ask for correction of inaccurate or outdated information.</li>
+        <li>Request deletion of your account and associated data.</li>
+        <li>Opt out of non-essential communication at any time.</li>
+        <li>Receive an export of your data in a portable format.</li>
+    </ul>
+
+    <h3>Third-Party Services</h3>
+    <p>We rely on reputable hosting, analytics, and infrastructure providers. Partners are vetted to ensure contractual privacy safeguards. No personal data is sold or shared for advertising.</p>
+
+    <h3>Academic Use</h3>
+    <p>This platform supports academic assignments. The underlying taxi dataset is publicly available and used in accordance with its licence. Analytical outputs are aggregated and never reveal rider or driver identities.</p>
+</section>
+{% endblock %}
