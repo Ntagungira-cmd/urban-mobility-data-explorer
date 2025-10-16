@@ -14,6 +14,9 @@ A Flask-based REST API for querying and analyzing NYC taxi trip data.
 
 - [Architecture Diagram](https://drive.google.com/file/d/1mxqubTdwl9xQooMGKDMzeqdEO2s682BB/view?usp=sharing)
 
+## ERD
+- [ERD Diagram](https://drive.google.com/drive/u/0/my-drive)
+
 ## Prerequisites
 
 - Python 3.12 or higher
