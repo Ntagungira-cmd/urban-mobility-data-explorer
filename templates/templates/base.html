@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}NYC Taxi Analytics{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-icon">NY</div>
+            <div>
+                <h1>NYC Taxi</h1>
+                <span>Analytics</span>
+            </div>
+        </div>
+        <nav class="nav">
+            <a href="{{ url_for('dashboard') }}" class="nav-item{% if active_page == 'dashboard' %} active{% endif %}">Dashboard</a>
+            <a href="{{ url_for('data_policy') }}" class="nav-item{% if active_page == 'policy' %} active{% endif %}">Data Policy</a>
+        </nav>
+        <div class="user-card">
+            <div class="avatar">A</div>
+            <div>
+                <p class="user-name">ali.n</p>
+                <p class="user-email">ali.n@academicbridge.xyz</p>
+            </div>
+            <a class="signout" href="#">Sign Out</a>
+        </div>
+    </aside>
+    <main class="content" role="main">
+        {% block main %}{% endblock %}
+    </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

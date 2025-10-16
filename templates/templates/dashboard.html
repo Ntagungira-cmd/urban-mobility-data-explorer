@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}NYC Taxi Analytics | Dashboard{% endblock %}
+
+{% block main %}
+<section class="page-header">
+    <div>
+        <p class="welcome-note">Welcome back, ali.n!</p>
+        <h2>Your NYC taxi trip analysis</h2>
+        <p class="muted">Use the filters below to explore trends, spot anomalies, and monitor performance.</p>
+    </div>
+    <div class="status" id="statusMessage" role="status"></div>
+</section>
+
+<section class="card filters">
+    <header>
+        <h3>Filters</h3>
+        <button type="button" id="resetFilters" class="btn-link">Reset</button>
+    </header>
+    <form id="filtersForm" class="filters-grid">
+        <label>
+            <span>Date From</span>
+            <input type="date" name="start_date" autocomplete="off">
+        </label>
+        <label>
+            <span>Date To</span>
+            <input type="date" name="end_date" autocomplete="off">
+        </label>
+        <label>
+            <span>Hour Of Day</span>
+            <select name="hour_of_day">
+                <option value="">All</option>
+                {% for hour in range(0, 24) %}
+                <option value="{{ hour }}">{{ "%02d:00"|format(hour) }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>
+            <span>Day Of Week</span>
+            <select name="day_of_week">
+                <option value="">All</option>
+                <option value="0">Monday</option>
+                <option value="1">Tuesday</option>
+                <option value="2">Wednesday</option>
+                <option value="3">Thursday</option>
+                <option value="4">Friday</option>
+                <option value="5">Saturday</option>
+                <option value="6">Sunday</option>
+            </select>
+        </label>
+        <label>
+            <span>Distance Category</span>
+            <select name="distance_category">
+                <option value="">All</option>
+                <option value="short">Short (&lt;2 km)</option>
+                <option value="medium">Medium (2-5 km)</option>
+                <option value="long">Long (5-10 km)</option>
+                <option value="very_long">Very Long (&gt;10 km)</option>
+            </select>
+        </label>
+        <label>
+            <span>Passenger Count</span>
+            <select name="passenger_count">
+                <option value="">All</option>
+                {% for count in range(1, 7) %}
+                <option value="{{ count }}">{{ count }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>
+            <span>Min Speed (km/h)</span>
+            <input type="number" name="min_speed" min="0" step="0.1" placeholder="0">
+        </label>
+        <label>
+            <span>Max Speed (km/h)</span>
+            <input type="number" name="max_speed" min="0" step="0.1" placeholder="120">
+        </label>
+        <label class="checkbox">
+            <input type="checkbox" name="is_weekend" value="true">
+            <span>Weekend Trips Only</span>
+        </label>
+        <label>
+            <span>Rows Per Page</span>
+            <select name="page_size" id="pageSize">
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+            </select>
+        </label>
+        <div class="filters-actions">
+            <button type="submit" class="btn-primary">Apply Filters</button>
+        </div>
+    </form>
+</section>
+
+<section class="metrics">
+    <article class="metric-card">
+        <h4>Total Trips</h4>
+        <p id="metric-total-trips" class="metric-value">--</p>
+        <span class="metric-sub">Trips returned for current filters</span>
+    </article>
+    <article class="metric-card">
+        <h4>Average Duration</h4>
+        <p id="metric-avg-duration" class="metric-value">--</p>
+        <span class="metric-sub">Minutes per trip</span>
+    </article>
+    <article class="metric-card">
+        <h4>Average Speed</h4>
+        <p id="metric-avg-speed" class="metric-value">--</p>
+        <span class="metric-sub">Kilometres per hour</span>
+    </article>
+    <article class="metric-card">
+        <h4>Average Distance</h4>
+        <p id="metric-avg-distance" class="metric-value">--</p>
+        <span class="metric-sub">Miles per trip</span>
+    </article>
+</section>
+
+<section class="card insights">
+    <header>
+        <h3>Key Insights</h3>
+    </header>
+    <div class="insight-grid">
+        <div class="insight">
+            <h4>Peak Travel Hours</h4>
+            <p id="insight-peak-hour">--</p>
+        </div>
+        <div class="insight">
+            <h4>Weekend Share</h4>
+            <p id="insight-weekend">--</p>
+        </div>
+        <div class="insight">
+            <h4>Speed Patterns</h4>
+            <p id="insight-speed">--</p>
+        </div>
+        <div class="insight">
+            <h4>Distance Mix</h4>
+            <p id="insight-distance">--</p>
+        </div>
+    </div>
+</section>
+
+<section class="card charts">
+    <div class="chart">
+        <h3>Distance Category Distribution</h3>
+        <canvas id="distanceChart" height="220"></canvas>
+    </div>
+</section>
+
+<section class="card table-card">
+    <header class="table-header">
+        <div>
+            <h3>Trip Records</h3>
+            <p id="tableSummary" class="muted">Showing 0 trips</p>
+        </div>
+        <div class="table-pagination">
+            <button type="button" id="prevPage" class="btn-link" disabled>Previous</button>
+            <span id="currentPage">Page 1</span>
+            <button type="button" id="nextPage" class="btn-link" disabled>Next</button>
+        </div>
+    </header>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Pickup Time</th>
+                <th>Dropoff Time</th>
+                <th>Distance</th>
+                <th>Duration</th>
+                <th>Speed</th>
+                <th>Passengers</th>
+                <th>Category</th>
+            </tr>
+            </thead>
+            <tbody id="tripTableBody"></tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='dashboard.js') }}" defer></script>
+{% endblock %}
