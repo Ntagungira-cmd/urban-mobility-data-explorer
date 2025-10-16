@@ -6,6 +6,11 @@ A Flask-based REST API for querying and analyzing NYC taxi trip data.
 
 [![Watch the video](https://drive.google.com/file/d/1D_EDgowscqjEYCBcUJR80XQbIF9cNY3D/view?usp=sharing)](https://drive.google.com/file/d/1D_EDgowscqjEYCBcUJR80XQbIF9cNY3D/view?usp=sharing)
 
+## Documentation links
+
+- [API Documentation](https://drive.google.com/file/d/1hvi97XJNKijotewKIFclTeNv9NYVA088/view?usp=sharing)
+
+
 ## Prerequisites
 
 - Python 3.12 or higher
