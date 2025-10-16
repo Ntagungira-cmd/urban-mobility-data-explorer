@@ -1,5 +1,5 @@
 import os
-from flask import Flask, g
+from flask import Flask, g, render_template
 from dotenv import load_dotenv
 from data_processing.data_processor import NYCTaxiDataProcessor
 from data_processing.taxi_trip_db import TaxiTripDatabase
@@ -35,8 +35,12 @@ def create_app():
             db.close()
 
     @app.route('/')
-    def hello_world():
-        return 'Hello World!'
+    def dashboard():
+        return render_template('dashboard.html', active_page='dashboard')
+
+    @app.route('/data-policy')
+    def data_policy():
+        return render_template('data_policy.html', active_page='policy')
 
     @app.cli.command('process-data')
     def process_data_command():
