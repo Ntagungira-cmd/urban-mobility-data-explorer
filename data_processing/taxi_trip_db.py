@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from typing import Dict, Any
+from typing import List, Dict, Any
 
 import mysql.connector
 import pandas as pd
@@ -335,3 +335,117 @@ class TaxiTripDatabase:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
+
+    # ---------------------------
+    # Query APIs used by trip_api
+    # ---------------------------
+    def get_trip_data(
+        self,
+        start_date: str | None = None,
+        end_date: str | None = None,
+        hour_of_day: int | None = None,
+        day_of_week: int | None = None,
+        is_weekend: bool | None = None,
+        distance_category: str | None = None,
+        min_speed: float | None = None,
+        max_speed: float | None = None,
+        passenger_count: int | None = None,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> List[Dict[str, Any]]:
+        if not self.connection or not self.cursor:
+            raise RuntimeError("Database not connected")
+
+        # Use dictionary cursor for JSON-friendly rows
+        dict_cursor = self.connection.cursor(dictionary=True)
+
+        query = "SELECT * FROM trips WHERE 1=1"
+        params: list[Any] = []
+
+        if start_date:
+            query += " AND pickup_datetime >= %s"
+            params.append(start_date)
+        if end_date:
+            query += " AND pickup_datetime <= %s"
+            params.append(end_date)
+        if hour_of_day is not None:
+            query += " AND hour_of_day = %s"
+            params.append(hour_of_day)
+        if day_of_week is not None:
+            query += " AND day_of_week = %s"
+            params.append(day_of_week)
+        if is_weekend is not None:
+            query += " AND is_weekend = %s"
+            params.append(1 if is_weekend in (True, 1, '1', 'true', 'True') else 0)
+        if distance_category:
+            query += " AND distance_category = %s"
+            params.append(distance_category)
+        if min_speed is not None:
+            query += " AND trip_speed_kmh >= %s"
+            params.append(min_speed)
+        if max_speed is not None:
+            query += " AND trip_speed_kmh <= %s"
+            params.append(max_speed)
+        if passenger_count is not None:
+            query += " AND passenger_count = %s"
+            params.append(passenger_count)
+
+        query += " ORDER BY pickup_datetime LIMIT %s OFFSET %s"
+        params.extend([int(limit), int(offset)])
+
+        dict_cursor.execute(query, params)
+        rows = dict_cursor.fetchall()
+        dict_cursor.close()
+        return rows
+
+    def get_trip_statistics(
+        self,
+        start_date: str | None,
+        end_date: str | None,
+        group_by: str,
+        metrics: List[str],
+    ) -> Dict[str, Any]:
+        if not self.connection or not self.cursor:
+            raise RuntimeError("Database not connected")
+
+        valid_groups = {
+            'hour_of_day': 'hour_of_day',
+            'day_of_week': 'day_of_week',
+            'month': 'month',
+            'distance_category': 'distance_category',
+        }
+        if group_by not in valid_groups:
+            raise ValueError(f"Invalid group_by: {group_by}")
+
+        metric_map = {
+            'avg_speed': 'AVG(trip_speed_kmh) AS avg_speed',
+            'avg_duration': 'AVG(trip_duration) AS avg_duration',
+            'avg_distance': 'AVG(trip_distance_km) AS avg_distance',
+            'trip_count': 'COUNT(*) AS trip_count',
+        }
+
+        selected = [metric_map[m] for m in metrics if m in metric_map]
+        if not selected:
+            selected = [metric_map['trip_count']]
+
+        select_clause = f"SELECT {valid_groups[group_by]} AS grp, " + ", ".join(selected) + " FROM trips WHERE 1=1"
+        params: list[Any] = []
+        if start_date:
+            select_clause += " AND pickup_datetime >= %s"
+            params.append(start_date)
+        if end_date:
+            select_clause += " AND pickup_datetime <= %s"
+            params.append(end_date)
+
+        select_clause += f" GROUP BY {valid_groups[group_by]} ORDER BY {valid_groups[group_by]}"
+
+        dict_cursor = self.connection.cursor(dictionary=True)
+        dict_cursor.execute(select_clause, params)
+        data = dict_cursor.fetchall()
+        dict_cursor.close()
+
+        # normalize key to something friendly in response
+        for row in data:
+            row[group_by] = row.pop('grp')
+
+        return {"group": group_by, "data": data}

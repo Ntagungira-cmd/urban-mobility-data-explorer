@@ -3,6 +3,7 @@ from flask import Flask
 from dotenv import load_dotenv
 from data_processing.data_processor import NYCTaxiDataProcessor
 from data_processing.taxi_trip_db import TaxiTripDatabase
+from trip_api import trip_api 
 
 load_dotenv()
 
@@ -25,6 +26,9 @@ def create_app():
     with app.app_context():
         db.connect()
         data_pipeline.process(db, data_file)
+        # Make DB instance available to blueprints/requests
+        app.config['db'] = db
+    app.register_blueprint(trip_api)
 
     @app.route('/')
     def hello_world():

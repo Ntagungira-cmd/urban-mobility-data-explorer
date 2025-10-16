@@ -6,6 +6,8 @@
    ```bash
    python3 -m venv .venv
    source .venv/bin/activate
+   or on windows
+   venv\Scripts\activate
    ```
 
 2. **Install dependencies** (if not already):
@@ -31,6 +33,14 @@
      export FLASK_ENV=development
      export FLASK_DEBUG=0
      ```
+     ### on windows
+     ```bash
+     $env:FLASK_APP = "app.py"
+     $env:FLASK_ENV = "development"
+     $env:FLASK_DEBUG = "0"
+     ```
+
+
    - If using a virtual environment, ensure it is activated:
      ```bash
      source .venv/bin/activate
@@ -38,6 +48,8 @@
    - Then run:
      ```bash
      python -m flask run
+     ### or on windows
+     python3 -m flask run
      ```
    - Or, if you are in PyCharm, set these environment variables in your run configuration and use the IDE's run button.
 
