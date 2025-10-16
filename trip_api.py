@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, g
 
-
 trip_api = Blueprint('trip_api', __name__)
+
 
 @trip_api.route('/api/trips', methods=['GET'])
 def get_trips():
@@ -33,6 +33,7 @@ def get_trips():
     )
 
     return jsonify(trips)
+
 
 @trip_api.route('/api/trips/statistics', methods=['GET'])
 def trips_statistics():
