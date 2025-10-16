@@ -1,10 +1,10 @@
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify, g
+
 
 trip_api = Blueprint('trip_api', __name__)
 
 @trip_api.route('/api/trips', methods=['GET'])
 def get_trips():
-    # Extract query parameters
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
     hour_of_day = request.args.get('hour_of_day', type=int)
@@ -17,13 +17,8 @@ def get_trips():
     limit = request.args.get('limit', default=100, type=int)
     offset = request.args.get('offset', default=0, type=int)
 
-    # Access DB instance from app context
-    db = current_app.config.get('db')
-    if db is None:
-        return jsonify({"error": "Database not initialized"}), 500
-
     # Fetch data from the database via class method
-    trips = db.get_trip_data(
+    trips = g.db.get_trip_data(
         start_date=start_date,
         end_date=end_date,
         hour_of_day=hour_of_day,
@@ -41,19 +36,13 @@ def get_trips():
 
 @trip_api.route('/api/trips/statistics', methods=['GET'])
 def trips_statistics():
-    # Extract query parameters
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
     group_by = request.args.get('group_by')
     metrics = request.args.getlist('metrics')
 
-    # Access DB instance from app context
-    db = current_app.config.get('db')
-    if db is None:
-        return jsonify({"error": "Database not initialized"}), 500
-
     # Fetch statistics from the database via class method
-    statistics = db.get_trip_statistics(
+    statistics = g.db.get_trip_statistics(
         start_date=start_date,
         end_date=end_date,
         group_by=group_by,

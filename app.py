@@ -1,16 +1,16 @@
 import os
-from flask import Flask
+from flask import Flask, g
 from dotenv import load_dotenv
 from data_processing.data_processor import NYCTaxiDataProcessor
 from data_processing.taxi_trip_db import TaxiTripDatabase
-from trip_api import trip_api 
+from trip_api import trip_api
 
 load_dotenv()
 
 def create_app():
     app = Flask(__name__)
 
-    db_config = {
+    app.config['db_config'] = {
         'host': os.getenv('DB_HOST'),
         'user': os.getenv('DB_USER'),
         'password': os.getenv('DB_PASSWORD'),
@@ -18,26 +18,37 @@ def create_app():
         'schema_file': os.getenv('SCHEMA_FILE')
     }
 
-    data_file = os.getenv('DATA_FILE', 'train.csv')
+    app.config['data_file'] = os.getenv('DATA_FILE', 'train.csv')
 
-    data_pipeline = NYCTaxiDataProcessor()
-    db = TaxiTripDatabase(**db_config)
-
-    with app.app_context():
-        db.connect()
-        data_pipeline.process(db, data_file)
-        # Make DB instance available to blueprints/requests
-        app.config['db'] = db
     app.register_blueprint(trip_api)
+
+    @app.before_request
+    def get_db():
+        if 'db' not in g:
+            g.db = TaxiTripDatabase(**app.config['db_config'])
+            g.db.connect()
+
+    @app.teardown_appcontext
+    def close_db_connection(exception=None):
+        db = g.pop('db', None)
+        if db is not None:
+            db.close()
 
     @app.route('/')
     def hello_world():
         return 'Hello World!'
 
-    @app.teardown_appcontext
-    def close_db_connection(exception=None):
-        if db is not None:
+    @app.cli.command('process-data')
+    def process_data_command():
+        print("Starting data processing pipeline...")
+        data_pipeline = NYCTaxiDataProcessor()
+        db = TaxiTripDatabase(**app.config['db_config'])
+        db.connect()
+        try:
+            data_pipeline.process(db, app.config['data_file'])
+        finally:
             db.close()
+        print("Data processing complete!")
 
     return app
 
