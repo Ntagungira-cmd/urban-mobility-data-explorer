@@ -56,7 +56,17 @@ export FLASK_APP=app.py
 export FLASK_ENV=development
 export FLASK_DEBUG=0
 
-# Run the data processing command
+```
+
+Windows (PowerShell):
+```powershell
+$env:FLASK_APP="app.py"
+$env:FLASK_ENV="development"
+$env:FLASK_DEBUG="0"
+```
+
+Run the data processing command:
+```bash
 python -m flask process-data
 ```
 
